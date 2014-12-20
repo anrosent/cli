@@ -1,12 +1,22 @@
 #!/usr/bin/env python3
 import cli
 
-def f1(a=None, b=3):
-    print("%s:%s"%(a,b))
+def greet(name=None, age=0):
+    print("Hello, %s. You are %s years old." % (name, age))
 
 if __name__ == '__main__':
 
     runner = cli.CLI()
-    runner.add_func(f1, 'first', ('a', {'type':int}), ('b', {'nargs': '?'}))
+    
+    # Commands can be specified with multiple names
+    aliases = ['greet', 'g']
 
+    # Specify Args for greet function (see argparse.ArgumentParser.add_argument)
+    name_arg = ('name', {'type':str})
+    age_arg  = ('age', {'type':int, 'nargs': '?'})
+    
+    # Add function to CLI
+    runner.add_func(greet, aliases, name_arg, age_arg)
+
+    # Loop from stdin (optionally takes any input stream)
     runner.run()
