@@ -46,7 +46,7 @@ class CLI(object):
         else:
             self._invalid_cmd(command=cmd)
 
-    def _exec_cmd(self, cmdstr):
+    def exec_cmd(self, cmdstr):
         """Parse line from CLI read loop and execute provided command
         """
         parts = cmdstr.split()
@@ -85,4 +85,4 @@ class CLI(object):
         """Runs the CLI, reading from sys.stdin by default
         """
         for line in instream:
-            self._exec_cmd(line)
+            self.exec_cmd(line)
