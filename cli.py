@@ -72,7 +72,7 @@ class CLI(object):
         """
         parts = cmdstr.split()
         if len(parts):
-            cmd, *args = parts
+            cmd, args = parts[0], parts[1:]
             self._dispatch(cmd, args)
         else:
             pass

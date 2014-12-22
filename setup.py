@@ -1,9 +1,9 @@
 from distutils.core import setup
 import os.path
 
-README = os.path.join(os.path.dirname(__file__), 'README.md')
+README = os.path.join(os.path.dirname(__file__), 'README')
 
-version = '0.1.0'
+version = '0.1.2'
 
 with open(README) as fp:
     longdesc = fp.read()
@@ -18,7 +18,6 @@ setup(name='clibuilder',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
         'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.3',
