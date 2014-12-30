@@ -10,7 +10,9 @@ class CLI(object):
     """The Command Line Interface runner        
     """
 
-    def __init__(self):
+    def __init__(self, prompt="> "):
+        self.prompt = prompt
+
         # Commands this CLI is responsible for
         self.cmds = {}
         self.aliases = {}
@@ -114,5 +116,10 @@ class CLI(object):
     def run(self, instream=sys.stdin):
         """Runs the CLI, reading from sys.stdin by default
         """
-        for line in instream:
+        sys.stdout.write(self.prompt)
+        sys.stdout.flush()
+        while True:
+            line = instream.readline()
             self.exec_cmd(line)
+            sys.stdout.write(self.prompt)
+            sys.stdout.flush()
