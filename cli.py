@@ -103,8 +103,7 @@ class CLI(object):
                     _, parser = self.cmds[cmd]
                     usage = parser.format_usage()
                     print('%s: %s' % (disp, ' '.join(usage.split()[2:])))
-                    print('-'*80)
-        print('External CLIs: %s' % ', '.join(self.clis))
+        print('External CLIs: %s' % ', '.join(sorted(self.clis)))
 
     def quit(self):
         """Quits the REPL
