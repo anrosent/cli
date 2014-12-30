@@ -11,8 +11,14 @@ class CLI(object):
     """
 
     def __init__(self):
+        # Commands this CLI is responsible for
         self.cmds = {}
         self.aliases = {}
+
+        # Extension CLIs
+        self.clis = {}
+
+        # Build default commands
         self.add_func(self.print_help, ['h', 'help'])
         self.add_func(self.quit,       ['q', 'quit'])
         self.builtin_cmds = frozenset(('h', 'help', 'q', 'quit'))
@@ -27,6 +33,8 @@ class CLI(object):
                 self.add_func(callback, name, *args)
                 self.aliases[name] = names
         elif isinstance(names, str):
+            if names in self.cmds or names in self.clis:
+                raise ValueError('Attempting to overwrite cmd or extern CLI: %s' % names)
             parser = argparse.ArgumentParser(prog=names)
             for cmd, spec in args:
                 parser.add_argument(cmd, **spec)
@@ -34,38 +42,36 @@ class CLI(object):
         else:
             raise TypeError("Command must be specified by str name or list of names")
 
-    def add_cli(self, prefix, other_cli, sep='-'):
+    def add_cli(self, prefix, other_cli):
         """Adds the functionality of the other CLI to this one, where all
         commands to the other CLI are prefixed by the given prefix plus a hyphen.
 
         e.g. To execute command `greet anson 5` on other cli given prefix cli2, you
         can execute the following with this CLI:
-            cli2-greet anson 5
+            cli2 greet anson 5
 
-        The hyphen joining the prefix and command name can be changed using the `sep`
-        keyword argument.
         """
-        for cmd, (fun, parser) in other_cli.cmds.items():
-            if cmd not in self.builtin_cmds:
-                new_cmd = sep.join((prefix, cmd))
-                if new_cmd not in self.cmds:
-                    self.cmds[new_cmd] = (fun, parser)
-                else:
-                    raise ValueError("Command %s already defined. Override not allowed.")
-
+        if prefix not in self.clis and prefix not in self.cmds:
+            self.clis[prefix] = other_cli
+        else:
+            raise ValueError('Attempting to overwrite cmd or extern CLI: %s' % prefix)
     
     def _dispatch(self, cmd, args):
         """Attempt to run the given command with the given arguments
         """
-        if cmd in self.cmds:
-            callback, parser = self.cmds[cmd]
-            try:
-                p_args = parser.parse_args(args)
-            except SystemExit:
-                return
-            callback(**dict(filter(lambda p:p[1] != None, p_args._get_kwargs())))
+        if cmd in self.clis:
+            extern_cmd, args = args[0], args[1:]
+            self.clis[cmd]._dispatch(extern_cmd, args)
         else:
-            self._invalid_cmd(command=cmd)
+            if cmd in self.cmds:
+                callback, parser = self.cmds[cmd]
+                try:
+                    p_args = parser.parse_args(args)
+                except SystemExit:
+                    return
+                callback(**dict(filter(lambda p:p[1] != None, p_args._get_kwargs())))
+            else:
+                self._invalid_cmd(command=cmd)
 
     def exec_cmd(self, cmdstr):
         """Parse line from CLI read loop and execute provided command
@@ -91,11 +97,14 @@ class CLI(object):
                 if cmd not in seen_aliases:
                     if cmd in self.aliases:
                         seen_aliases.update(self.aliases[cmd])
-                        cmd = '/'.join(self.aliases[cmd])
-                    print(cmd)
+                        disp = '/'.join(self.aliases[cmd])
+                    else:
+                        disp = cmd
                     _, parser = self.cmds[cmd]
-                    parser.print_usage()
+                    usage = parser.format_usage()
+                    print('%s: %s' % (disp, ' '.join(usage.split()[2:])))
                     print('-'*80)
+        print('External CLIs: %s' % ', '.join(self.clis))
 
     def quit(self):
         """Quits the REPL
