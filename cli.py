@@ -6,6 +6,7 @@ validation and parsing logic to the `argparse` Standard Library module.
 import sys
 import argparse
 
+#TODO: use ArgumentParser.add_subparsers to implement external CLIs instead
 class CLI(object):
     """The Command Line Interface runner        
     """
