@@ -6,6 +6,9 @@ validation and parsing logic to the `argparse` Standard Library module.
 import sys
 import argparse
 
+def reraise(e):
+    raise e
+
 #TODO: use ArgumentParser.add_subparsers to implement external CLIs instead
 class CLI(object):
     """The Command Line Interface runner        
@@ -13,6 +16,7 @@ class CLI(object):
 
     def __init__(self, prompt="> "):
         self.prompt = prompt
+        self.errfun = reraise
 
         # Commands this CLI is responsible for
         self.cmds = {}
@@ -58,6 +62,9 @@ class CLI(object):
             self.clis[prefix] = other_cli
         else:
             raise ValueError('Attempting to overwrite cmd or extern CLI: %s' % prefix)
+
+    def on_err(self, f):
+        self.errfun = f
     
     def _dispatch(self, cmd, args):
         """Attempt to run the given command with the given arguments
@@ -121,6 +128,10 @@ class CLI(object):
         sys.stdout.flush()
         while True:
             line = instream.readline()
-            self.exec_cmd(line)
+            try:
+                self.exec_cmd(line)
+            except Exception as e:
+                self.errfun(e)
+
             sys.stdout.write(self.prompt)
             sys.stdout.flush()
